@@ -94,6 +94,69 @@
             </div>
         </div>
 
+        <!-- ═══════════════════════════════════════════════════════
+             ADDITIONAL SERVICES BREAKDOWN
+        ═══════════════════════════════════════════════════════ -->
+        @if($sale->services->isNotEmpty())
+        @php $servicesTotal = $sale->servicesTotal(); @endphp
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="px-6 py-4 bg-indigo-700 flex items-center gap-2">
+                <svg class="w-4 h-4 text-indigo-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/>
+                </svg>
+                <h3 class="text-sm font-bold text-white uppercase tracking-wider">Additional Services</h3>
+                <span class="ml-auto text-xs text-indigo-300 font-mono" x-text="`Total Quantity: ${totalBags()} Bags`">{{ $sale->items->sum('bags') }} Total Bags</span>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full">
+                    <thead>
+                        <tr class="bg-indigo-50 border-b border-indigo-100">
+                            <th class="px-6 py-3 text-left text-xs font-bold text-indigo-500 uppercase tracking-wider">Service Details</th>
+                            <th class="px-6 py-3 text-right text-xs font-bold text-indigo-500 uppercase tracking-wider">Quantity (Bags)</th>
+                            <th class="px-6 py-3 text-right text-xs font-bold text-indigo-500 uppercase tracking-wider">Base Price / Unit</th>
+                            <th class="px-6 py-3 text-right text-xs font-bold text-indigo-500 uppercase tracking-wider">Total Charged</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-indigo-50">
+                        @foreach($sale->services as $service)
+                            <tr class="hover:bg-indigo-50/50 transition-colors">
+                                <td class="px-6 py-4">
+                                    <div class="flex flex-col">
+                                        <div class="flex items-center gap-2">
+                                            <span class="w-2 h-2 rounded-full bg-indigo-400 shrink-0"></span>
+                                            <span class="text-sm font-bold text-gray-900">{{ $service->name }}</span>
+                                        </div>
+                                        @if($service->description)
+                                            <span class="text-[11px] text-gray-400 mt-0.5 ml-4">{{ $service->description }}</span>
+                                        @endif
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-right text-sm font-mono text-gray-700">
+                                    {{ number_format($service->pivot->quantity_used, 2) }}
+                                </td>
+                                <td class="px-6 py-4 text-right">
+                                    <span class="text-sm font-bold text-gray-900 font-mono">{{ number_format($service->price, 2) }}</span>
+                                    <span class="text-[10px] text-gray-400 uppercase tracking-widest block ml-auto">per {{ str_replace('_', ' ', $service->pivot->unit) }}</span>
+                                </td>
+                                <td class="px-6 py-4 text-right text-sm font-black text-indigo-700 font-mono">
+                                    {{ number_format($service->pivot->price, 2) }}
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                    <tfoot>
+                        <tr class="bg-indigo-700 text-white">
+                            <td colspan="3" class="px-6 py-3 text-right text-xs font-bold uppercase tracking-wider">Services Total</td>
+                            <td class="px-6 py-3 text-right text-sm font-black font-mono text-indigo-200">
+                                {{ number_format($servicesTotal, 2) }}
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+        @endif
+
         @if($sale->notes)
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                 <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Notes</p>

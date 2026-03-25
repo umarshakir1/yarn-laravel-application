@@ -26,4 +26,21 @@ class Sale extends Model
     {
         return $this->hasMany(SaleItem::class);
     }
+
+    public function services()
+    {
+        return $this->belongsToMany(Service::class, 'sale_services')
+                    ->withPivot('price', 'unit', 'quantity_used', 'service_cost', 'service_profit')
+                    ->withTimestamps();
+    }
+
+    public function servicesTotal(): float
+    {
+        return $this->services->sum('pivot.price');
+    }
+
+    public function serviceProfitsTotal(): float
+    {
+        return $this->services->sum('pivot.service_profit');
+    }
 }

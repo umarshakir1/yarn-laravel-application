@@ -32,7 +32,7 @@
         <!-- Summary Cards -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div class="bg-white rounded-xl shadow-sm border-l-4 border-l-blue-500 border border-gray-100 p-6">
-                <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Total Sales</p>
+                <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Total Sales (Inc. Services)</p>
                 <p class="text-3xl font-black text-blue-600 font-mono">{{ number_format($summary['total_sales'], 2) }}</p>
             </div>
             <div class="bg-white rounded-xl shadow-sm border-l-4 border-l-green-500 border border-gray-100 p-6">
@@ -40,8 +40,24 @@
                 <p class="text-3xl font-black text-green-600 font-mono">{{ number_format($summary['total_paid'], 2) }}</p>
             </div>
             <div class="bg-white rounded-xl shadow-sm border-l-4 border-l-indigo-500 border border-gray-100 p-6">
-                <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Total Profit</p>
+                <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Overall Total Profit</p>
                 <p class="text-3xl font-black text-indigo-600 font-mono">{{ number_format($summary['total_profit'], 2) }}</p>
+            </div>
+        </div>
+
+        <!-- Service Performance Breakdown -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white rounded-xl shadow-sm border-l-4 border-l-indigo-400 border border-gray-100 p-6 scale-95 opacity-90 transition-all hover:scale-100 hover:opacity-100">
+                <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Service Revenue</p>
+                <p class="text-2xl font-black text-indigo-700 font-mono">{{ number_format($summary['service_revenue'], 2) }}</p>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm border-l-4 border-l-red-400 border border-gray-100 p-6 scale-95 opacity-90 transition-all hover:scale-100 hover:opacity-100">
+                <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Service Cost</p>
+                <p class="text-2xl font-black text-red-600 font-mono">{{ number_format($summary['service_cost'], 2) }}</p>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm border-l-4 border-l-green-400 border border-gray-100 p-6 scale-95 opacity-90 transition-all hover:scale-100 hover:opacity-100">
+                <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 text-green-600">Service Profit</p>
+                <p class="text-2xl font-black text-green-700 font-mono">{{ number_format($summary['service_profit'], 2) }}</p>
             </div>
         </div>
 

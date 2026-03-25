@@ -24,6 +24,7 @@
                             ['route' => 'clients.index', 'label' => 'Parties', 'match' => 'clients.*'],
                             ['route' => 'purchases.index', 'label' => 'Purchases', 'match' => 'purchases.*'],
                             ['route' => 'sales.index', 'label' => 'Sales', 'match' => 'sales.*'],
+                            ['route' => 'services.index', 'label' => 'Services', 'match' => 'services.*'],
                             ['route' => 'expenses.index', 'label' => 'Expenses', 'match' => 'expenses.*'],
                             ['route' => 'accounts.index', 'label' => 'Bank/Cash', 'match' => 'accounts.*'],
                             ['route' => 'transfers.index', 'label' => 'Transfers', 'match' => 'transfers.*'],

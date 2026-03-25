@@ -35,9 +35,19 @@
                 <div class="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center mb-4">
                     <svg class="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
                 </div>
-                <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Gross Profit (Sales)</p>
+                <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Gross Profit (Overall)</p>
                 <p class="text-3xl font-black text-green-600 font-mono mb-2">{{ number_format($totalSaleProfit, 2) }}</p>
-                <p class="text-xs text-gray-500 leading-relaxed italic">Calculated as (Selling Price − Cost Price) per Bundle sold in the selected period.</p>
+                
+                <div class="flex flex-col gap-1 pt-3 border-t border-gray-100 mt-2">
+                    <div class="flex justify-between text-[11px] font-bold">
+                        <span class="text-gray-400">PRODUCT PROFIT:</span>
+                        <span class="text-green-600">{{ number_format($totalSaleProfit - $serviceProfit, 2) }}</span>
+                    </div>
+                    <div class="flex justify-between text-[11px] font-bold">
+                        <span class="text-indigo-400">SERVICE PROFIT:</span>
+                        <span class="text-indigo-600">+ {{ number_format($serviceProfit, 2) }}</span>
+                    </div>
+                </div>
             </div>
 
             <div class="bg-white rounded-xl shadow-sm border-l-4 border-l-red-500 border border-gray-100 p-8">

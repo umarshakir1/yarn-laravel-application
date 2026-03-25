@@ -1,0 +1,90 @@
+<x-app-layout>
+    <x-slot name="header">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900">New Service</h1>
+                <p class="text-sm text-gray-500 mt-0.5">Add a new add-on service available at point of sale</p>
+            </div>
+            <a href="{{ route('services.index') }}" class="inline-flex items-center gap-1.5 px-4 py-2 bg-gray-100 text-gray-700 text-sm font-semibold rounded-lg hover:bg-gray-200 transition-colors">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+                Back
+            </a>
+        </div>
+    </x-slot>
+
+    <div class="py-8 px-6 lg:px-8 max-w-lg mx-auto">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
+            <form action="{{ route('services.store') }}" method="POST" class="space-y-6">
+                @csrf
+
+                <div>
+                    <label for="name" class="block text-sm font-semibold text-gray-700 mb-1.5">
+                        Service Name <span class="text-red-500">*</span>
+                    </label>
+                    <input id="name" name="name" type="text" autofocus required value="{{ old('name') }}"
+                           class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-colors"
+                           placeholder="e.g. Dying, Packing, Stitching">
+                    @error('name')<p class="mt-1.5 text-xs text-red-600">{{ $message }}</p>@enderror
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                        <label for="price" class="block text-sm font-semibold text-gray-700 mb-1.5">
+                            Selling Price <span class="text-red-500">*</span>
+                        </label>
+                        <input id="price" name="price" type="number" step="0.01" min="0" required value="{{ old('price', '0.00') }}"
+                               class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-mono focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-colors"
+                               placeholder="0.00">
+                        @error('price')<p class="mt-1.5 text-xs text-red-600">{{ $message }}</p>@enderror
+                    </div>
+
+                    <div>
+                        <label for="cost_price" class="block text-sm font-semibold text-gray-700 mb-1.5">
+                            Cost Price <span class="text-red-500">*</span>
+                        </label>
+                        <input id="cost_price" name="cost_price" type="number" step="0.01" min="0" required value="{{ old('cost_price', '0.00') }}"
+                               class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-mono focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-colors"
+                               placeholder="0.00">
+                        @error('cost_price')<p class="mt-1.5 text-xs text-red-600">{{ $message }}</p>@enderror
+                    </div>
+
+                    <div>
+                        <label for="unit" class="block text-sm font-semibold text-gray-700 mb-1.5">Unit Type <span class="text-red-500">*</span></label>
+                        <select id="unit" name="unit" required
+                                class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-colors">
+                            <option value="per_kg" {{ old('unit') == 'per_kg' ? 'selected' : '' }}>per KG</option>
+                            <option value="per_bundle" {{ old('unit') == 'per_bundle' ? 'selected' : '' }}>per Bundle</option>
+                            <option value="per_bag" {{ old('unit', 'per_bag') == 'per_bag' ? 'selected' : '' }}>per Bag</option>
+                        </select>
+                        @error('unit')<p class="mt-1.5 text-xs text-red-600">{{ $message }}</p>@enderror
+                    </div>
+                </div>
+
+                <div>
+                    <label for="description" class="block text-sm font-semibold text-gray-700 mb-1.5">Description</label>
+                    <textarea id="description" name="description" rows="3"
+                              class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-colors"
+                              placeholder="Optional: brief description of this service">{{ old('description') }}</textarea>
+                    @error('description')<p class="mt-1.5 text-xs text-red-600">{{ $message }}</p>@enderror
+                </div>
+
+                <div class="flex items-center gap-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <input id="is_active" name="is_active" type="checkbox" value="1" checked
+                           class="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer">
+                    <label for="is_active" class="text-sm font-semibold text-gray-700 cursor-pointer">
+                        Active — show this service as an option when creating a sale
+                    </label>
+                </div>
+
+                <div class="flex items-center gap-3 pt-2">
+                    <button type="submit" class="px-6 py-2.5 bg-gray-900 text-white text-sm font-semibold rounded-lg hover:bg-gray-700 transition-colors shadow-sm">
+                        Save Service
+                    </button>
+                    <a href="{{ route('services.index') }}" class="px-6 py-2.5 bg-gray-100 text-gray-700 text-sm font-semibold rounded-lg hover:bg-gray-200 transition-colors">
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</x-app-layout>

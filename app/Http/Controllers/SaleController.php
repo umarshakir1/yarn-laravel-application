@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Sale;
 use App\Models\Client;
 use App\Models\Lot;
+use App\Models\Service;
 use App\Http\Requests\SaleRequest;
 use App\Services\SaleService;
 use Illuminate\Http\Request;
@@ -26,9 +27,10 @@ class SaleController extends Controller
 
     public function create()
     {
-        $clients = Client::whereIn('type', ['customer', 'both'])->active()->get();
-        $lots = Lot::with('product')->available()->get();
-        return view('sales.create', compact('clients', 'lots'));
+        $clients  = Client::whereIn('type', ['customer', 'both'])->active()->get();
+        $lots     = Lot::with('product')->available()->get();
+        $services = Service::active()->orderBy('name')->get();
+        return view('sales.create', compact('clients', 'lots', 'services'));
     }
 
     public function store(SaleRequest $request)
@@ -43,7 +45,7 @@ class SaleController extends Controller
 
     public function show(Sale $sale)
     {
-        $sale->load(['client', 'items.product', 'items.lot']);
+        $sale->load(['client', 'items.product', 'items.lot', 'services']);
         return view('sales.show', compact('sale'));
     }
 
