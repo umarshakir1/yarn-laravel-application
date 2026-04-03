@@ -18,29 +18,37 @@
                 <!-- Navigation Links -->
                 <div class="hidden sm:flex sm:items-center sm:space-x-1">
                     @php
-                        $navLinks = [
-                            ['route' => 'dashboard', 'label' => 'Dashboard', 'match' => 'dashboard'],
-                            ['route' => 'products.index', 'label' => 'Products', 'match' => 'products.*'],
-                            ['route' => 'clients.index', 'label' => 'Parties', 'match' => 'clients.*'],
-                            ['route' => 'purchases.index', 'label' => 'Purchases', 'match' => 'purchases.*'],
-                            ['route' => 'sales.index', 'label' => 'Sales', 'match' => 'sales.*'],
-                            ['route' => 'services.index', 'label' => 'Services', 'match' => 'services.*'],
-                            ['route' => 'expenses.index', 'label' => 'Expenses', 'match' => 'expenses.*'],
-                            ['route' => 'accounts.index', 'label' => 'Bank/Cash', 'match' => 'accounts.*'],
-                            ['route' => 'transfers.index', 'label' => 'Transfers', 'match' => 'transfers.*'],
+                        $authUser   = Auth::user();
+                        $isAdmin    = $authUser->hasRole('Admin');
+                        $navLinks   = [
+                            ['route' => 'dashboard',        'label' => 'Dashboard',  'match' => 'dashboard',    'permission' => null],
+                            ['route' => 'products.index',   'label' => 'Products',   'match' => 'products.*',   'permission' => 'view products'],
+                            ['route' => 'clients.index',    'label' => 'Parties',    'match' => 'clients.*',    'permission' => 'view clients'],
+                            ['route' => 'purchases.index',  'label' => 'Purchases',  'match' => 'purchases.*',  'permission' => 'view purchases'],
+                            ['route' => 'sales.index',      'label' => 'Sales',      'match' => 'sales.*',      'permission' => 'view sales'],
+                            ['route' => 'services.index',   'label' => 'Services',   'match' => 'services.*',   'permission' => 'view services'],
+                            ['route' => 'expenses.index',   'label' => 'Expenses',   'match' => 'expenses.*',   'permission' => 'view expenses'],
+                            ['route' => 'accounts.index',   'label' => 'Bank/Cash',  'match' => 'accounts.*',   'permission' => 'view accounts'],
+                            ['route' => 'transfers.index',  'label' => 'Transfers',  'match' => 'transfers.*',  'permission' => 'view transfers'],
                         ];
                     @endphp
                     @foreach($navLinks as $link)
-                        <a href="{{ route($link['route']) }}"
-                           class="px-3 py-2 rounded-md text-sm font-medium transition-colors duration-150
-                                  {{ request()->routeIs($link['match'])
-                                    ? 'bg-gray-800 text-white'
-                                    : 'text-gray-300 hover:text-white hover:bg-gray-800' }}">
-                            {{ $link['label'] }}
-                        </a>
+                        @if(is_null($link['permission']) || $isAdmin || $authUser->hasPermissionTo($link['permission']))
+                            <a href="{{ route($link['route']) }}"
+                               class="px-3 py-2 rounded-md text-sm font-medium transition-colors duration-150
+                                      {{ request()->routeIs($link['match'])
+                                        ? 'bg-gray-800 text-white'
+                                        : 'text-gray-300 hover:text-white hover:bg-gray-800' }}">
+                                {{ $link['label'] }}
+                            </a>
+                        @endif
                     @endforeach
 
                     <!-- Reports Dropdown -->
+                    @php
+                        $canLedgers = $isAdmin || $authUser->hasPermissionTo('view clients');
+                    @endphp
+                    @if($isAdmin || $canLedgers)
                     <div x-data="{ reportsOpen: false }" class="relative">
                         <button @click="reportsOpen = !reportsOpen" @click.away="reportsOpen = false"
                                 class="flex items-center gap-1 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-150
@@ -62,6 +70,7 @@
                              x-transition:leave-end="transform opacity-0 scale-95"
                              class="absolute left-0 top-full mt-1 w-52 bg-white rounded-xl shadow-xl border border-gray-100 py-1 z-50"
                              style="display: none;">
+                            @if($isAdmin)
                             <div class="px-3 py-2 text-xs font-bold text-gray-400 uppercase tracking-wider">Reports</div>
                             <a href="{{ route('reports.sales') }}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 transition-colors">
                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
@@ -75,7 +84,9 @@
                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
                                 P&L Report
                             </a>
-                            <div class="border-t border-gray-100 my-1"></div>
+                            @endif
+                            @if($canLedgers)
+                            @if($isAdmin)<div class="border-t border-gray-100 my-1"></div>@endif
                             <div class="px-3 py-2 text-xs font-bold text-gray-400 uppercase tracking-wider">Ledgers</div>
                             <a href="{{ route('ledgers.customers.index') }}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 transition-colors">
                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
@@ -85,8 +96,21 @@
                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                                 Supplier Ledgers
                             </a>
+                            @endif
                         </div>
                     </div>
+                    @endif
+
+                    <!-- Staff Management (Admin only) -->
+                    @if($isAdmin)
+                        <a href="{{ route('staff.index') }}"
+                           class="px-3 py-2 rounded-md text-sm font-medium transition-colors duration-150
+                                  {{ request()->routeIs('staff.*')
+                                    ? 'bg-gray-800 text-white'
+                                    : 'text-gray-300 hover:text-white hover:bg-gray-800' }}">
+                            Staff
+                        </a>
+                    @endif
                 </div>
             </div>
 
@@ -148,21 +172,36 @@
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden bg-gray-800 border-t border-gray-700">
         <div class="pt-2 pb-3 space-y-1 px-4">
             @foreach($navLinks as $link)
-                <a href="{{ route($link['route']) }}"
-                   class="block px-3 py-2 rounded-md text-sm font-medium transition-colors
-                          {{ request()->routeIs($link['match']) ? 'bg-gray-700 text-white' : 'text-gray-300 hover:text-white hover:bg-gray-700' }}">
-                    {{ $link['label'] }}
-                </a>
+                @if(is_null($link['permission']) || $isAdmin || $authUser->hasPermissionTo($link['permission']))
+                    <a href="{{ route($link['route']) }}"
+                       class="block px-3 py-2 rounded-md text-sm font-medium transition-colors
+                              {{ request()->routeIs($link['match']) ? 'bg-gray-700 text-white' : 'text-gray-300 hover:text-white hover:bg-gray-700' }}">
+                        {{ $link['label'] }}
+                    </a>
+                @endif
             @endforeach
 
+            @if($isAdmin || $canLedgers)
             <div class="border-t border-gray-700 pt-2 mt-2">
+                @if($isAdmin)
                 <div class="px-3 py-1 text-xs font-bold text-gray-400 uppercase tracking-wider">Reports</div>
                 <a href="{{ route('reports.sales') }}" class="block px-3 py-2 rounded-md text-sm text-gray-300 hover:text-white hover:bg-gray-700">Sales Report</a>
                 <a href="{{ route('reports.inventory') }}" class="block px-3 py-2 rounded-md text-sm text-gray-300 hover:text-white hover:bg-gray-700">Inventory Report</a>
                 <a href="{{ route('reports.profit_loss') }}" class="block px-3 py-2 rounded-md text-sm text-gray-300 hover:text-white hover:bg-gray-700">P&L Report</a>
+                @endif
+                @if($canLedgers)
+                <div class="px-3 py-1 text-xs font-bold text-gray-400 uppercase tracking-wider {{ $isAdmin ? 'mt-2' : '' }}">Ledgers</div>
                 <a href="{{ route('ledgers.customers.index') }}" class="block px-3 py-2 rounded-md text-sm text-gray-300 hover:text-white hover:bg-gray-700">Customer Ledgers</a>
                 <a href="{{ route('ledgers.suppliers.index') }}" class="block px-3 py-2 rounded-md text-sm text-gray-300 hover:text-white hover:bg-gray-700">Supplier Ledgers</a>
+                @endif
             </div>
+            @endif
+
+            @if($isAdmin)
+            <div class="border-t border-gray-700 pt-2 mt-2">
+                <a href="{{ route('staff.index') }}" class="block px-3 py-2 rounded-md text-sm text-gray-300 hover:text-white hover:bg-gray-700">Staff Management</a>
+            </div>
+            @endif
         </div>
 
         <!-- Responsive User Options -->

@@ -15,6 +15,7 @@ class SaleItem extends Model
         'unit_price_per_bundle',
         'subtotal',
         'profit',
+        'kg_quantity',
     ];
 
     public function sale()

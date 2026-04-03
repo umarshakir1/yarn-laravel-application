@@ -21,6 +21,7 @@
                         <tr class="bg-gray-800 text-white">
                             <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider">Name</th>
                             <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider">Quality</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider">Unit Type</th>
                             <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider">Status</th>
                             <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider">Actions</th>
                         </tr>
@@ -30,6 +31,11 @@
                             <tr class="hover:bg-indigo-50/30 transition-colors even:bg-gray-50/40">
                                 <td class="px-6 py-4 text-sm font-semibold text-gray-900">{{ $product->name }}</td>
                                 <td class="px-6 py-4 text-sm text-gray-600">{{ $product->quality }}</td>
+                                <td class="px-6 py-4">
+                                    <span class="inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-full {{ $product->unit_type === 'per_kg' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-700' }}">
+                                        {{ $product->unit_type === 'per_kg' ? 'Per KG' : 'Per Bag' }}
+                                    </span>
+                                </td>
                                 <td class="px-6 py-4">
                                     @if($product->is_active)
                                         <span class="inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
@@ -62,7 +68,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="4" class="px-6 py-16 text-center">
+                                <td colspan="5" class="px-6 py-16 text-center">
                                     <svg class="w-12 h-12 text-gray-300 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
                                     <p class="text-gray-400 font-medium">No products found.</p>
                                     <a href="{{ route('products.create') }}" class="mt-3 inline-flex items-center gap-1 text-sm text-indigo-600 font-semibold hover:underline">+ Add your first product</a>

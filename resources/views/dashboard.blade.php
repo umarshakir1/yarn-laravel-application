@@ -12,6 +12,7 @@
     <div class="max-w-[1600px] mx-auto px-6 lg:px-8 xl:px-16 py-12">
 
         {{-- ── Summary Stat Cards ────────────────────────────────────────────── --}}
+        @if(auth()->user()->role === 'admin')
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
 
             {{-- Receivables --}}
@@ -91,6 +92,7 @@
             </div>
 
         </div>
+        @endif
 
         {{-- ── Bottom Two-Panel Grid ─────────────────────────────────────────── --}}
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-stretch mt-12">
@@ -121,7 +123,9 @@
                             <tr class="bg-gray-50 border-b border-gray-100">
                                 <th class="px-5 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Invoice #</th>
                                 <th class="px-5 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Customer</th>
+                                @if(auth()->user()->role === 'admin')
                                 <th class="px-5 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Amount</th>
+                                @endif
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-50">
@@ -129,11 +133,13 @@
                                 <tr class="hover:bg-indigo-50/30 transition-colors even:bg-gray-50/40">
                                     <td class="px-5 py-3.5 text-sm font-bold text-indigo-700">{{ $sale->invoice_no }}</td>
                                     <td class="px-5 py-3.5 text-sm text-gray-600">{{ $sale->client->name }}</td>
+                                    @if(auth()->user()->role === 'admin')
                                     <td class="px-5 py-3.5 text-sm font-bold text-gray-900 text-right font-mono">{{ number_format($sale->total_amount, 2) }}</td>
+                                    @endif
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="3" class="px-5 py-10 text-center text-sm text-gray-400">No sales found.</td>
+                                    <td colspan="{{ auth()->user()->role === 'admin' ? 3 : 2 }}" class="px-5 py-10 text-center text-sm text-gray-400">No sales found.</td>
                                 </tr>
                             @endforelse
                         </tbody>

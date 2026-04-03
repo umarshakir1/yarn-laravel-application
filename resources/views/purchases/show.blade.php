@@ -46,9 +46,9 @@
                     <thead>
                         <tr class="bg-gray-50 border-b border-gray-100">
                             <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Product</th>
-                            <th class="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Bags</th>
-                            <th class="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Bundles</th>
-                            <th class="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Cost/Bundle</th>
+                            <th class="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Qty</th>
+                            <th class="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Bundles / KG</th>
+                            <th class="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Unit Cost</th>
                             <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Lot #</th>
                             <th class="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Subtotal</th>
                         </tr>
@@ -56,13 +56,33 @@
                     <tbody class="divide-y divide-gray-100">
                         @foreach($purchase->items as $item)
                             <tr class="hover:bg-indigo-50/20 transition-colors even:bg-gray-50/40">
+                                @php $isKg = $item->product->unit_type === 'per_kg'; @endphp
                                 <td class="px-6 py-4 text-sm font-medium text-gray-900">
                                     {{ $item->product->name }}
                                     <span class="text-gray-400">({{ $item->product->quality }})</span>
+                                    <span class="ml-1 text-[10px] font-bold uppercase {{ $isKg ? 'text-blue-500' : 'text-gray-400' }}">{{ $isKg ? 'per KG' : 'per Bag' }}</span>
                                 </td>
-                                <td class="px-6 py-4 text-right text-sm text-gray-600 font-mono">{{ $item->bags }}</td>
-                                <td class="px-6 py-4 text-right text-sm text-gray-600 font-mono">{{ $item->bundles }}</td>
-                                <td class="px-6 py-4 text-right text-sm text-gray-600 font-mono">{{ number_format($item->unit_price_per_bundle, 2) }}</td>
+                                <td class="px-6 py-4 text-right text-sm text-gray-600 font-mono">
+                                    @if($isKg)
+                                        {{ number_format($item->bags * 25, 2) }} KG
+                                    @else
+                                        {{ $item->bags }} bags
+                                    @endif
+                                </td>
+                                <td class="px-6 py-4 text-right text-sm text-gray-600 font-mono">
+                                    @if($isKg)
+                                        <span class="text-blue-500">{{ number_format($item->bags * 25, 2) }} KG</span>
+                                    @else
+                                        {{ $item->bundles }}
+                                    @endif
+                                </td>
+                                <td class="px-6 py-4 text-right text-sm text-gray-600 font-mono">
+                                    @if($isKg)
+                                        {{ number_format($item->unit_price_per_bundle / 5, 2) }}/KG
+                                    @else
+                                        {{ number_format($item->unit_price_per_bundle, 2) }}/bundle
+                                    @endif
+                                </td>
                                 <td class="px-6 py-4">
                                     <span class="inline-flex items-center px-2.5 py-1 bg-yellow-100 text-yellow-800 text-xs font-bold rounded-full">
                                         {{ $item->lot->lot_number ?? 'N/A' }}

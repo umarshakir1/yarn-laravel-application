@@ -65,9 +65,9 @@
                         <thead>
                             <tr class="bg-gray-50 border-b border-gray-100">
                                 <th class="px-5 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Lot Number (Product)</th>
-                                <th class="px-5 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Avail. Bags</th>
-                                <th class="px-5 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Bags to Sell</th>
-                                <th class="px-5 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Price/Bundle</th>
+                                <th class="px-5 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Available</th>
+                                <th class="px-5 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Qty to Sell</th>
+                                <th class="px-5 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Unit Price</th>
                                 <th class="px-5 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Subtotal</th>
                                 <th class="px-5 py-3"></th>
                             </tr>
@@ -80,25 +80,78 @@
                                                 class="block w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none" required>
                                             <option value="">Select Lot</option>
                                             @foreach($lots as $lot)
-                                                <option value="{{ $lot->id }}" data-bags="{{ $lot->remaining_bags }}" data-cost="{{ $lot->cost_price_per_bundle }}">
+                                                <option value="{{ $lot->id }}"
+                                                        data-bags="{{ $lot->remaining_bags }}"
+                                                        data-cost="{{ $lot->cost_price_per_bundle }}"
+                                                        data-unit-type="{{ $lot->product->unit_type }}">
                                                     {{ $lot->lot_number }} ({{ $lot->product->name }} - {{ $lot->product->quality }})
                                                 </option>
                                             @endforeach
                                         </select>
+                                        <span class="mt-1 inline-block text-[10px] font-bold uppercase tracking-wider"
+                                              :class="item.unit_type === 'per_kg' ? 'text-blue-500' : 'text-gray-400'"
+                                              x-text="item.unit_type === 'per_kg' ? 'Per KG' : 'Per Bag'"></span>
                                     </td>
+
+                                    <!-- Available: per_bag shows bags, per_kg shows kg -->
                                     <td class="px-4 py-3 bg-gray-50/50">
-                                        <span class="text-sm font-bold text-gray-700 font-mono" x-text="item.available_bags"></span>
+                                        <template x-if="item.unit_type === 'per_bag'">
+                                            <span class="text-sm font-bold text-gray-700 font-mono" x-text="item.available_bags + ' bags'"></span>
+                                        </template>
+                                        <template x-if="item.unit_type === 'per_kg'">
+                                            <span class="text-sm font-bold text-blue-700 font-mono" x-text="item.available_kg + ' kg'"></span>
+                                        </template>
                                     </td>
+
+                                    <!-- Qty to Sell: per_bag uses bags input, per_kg uses kg input -->
                                     <td class="px-4 py-3">
-                                        <input type="number" :name="`items[${index}][bags]`" x-model.number="item.bags" :max="item.available_bags" step="0.01" required
-                                               @input="recalculateServices()"
-                                               class="block w-full rounded-lg border border-gray-300 px-4 py-2 text-sm font-mono focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none">
+                                        <!-- Per Bag -->
+                                        <template x-if="item.unit_type === 'per_bag'">
+                                            <input type="number" :name="`items[${index}][bags]`" x-model.number="item.bags"
+                                                   :max="item.available_bags" step="0.01" min="0.01" required
+                                                   @input="recalculateServices()"
+                                                   placeholder="Bags"
+                                                   class="block w-full rounded-lg border border-gray-300 px-4 py-2 text-sm font-mono focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none">
+                                        </template>
+                                        <!-- Per KG -->
+                                        <template x-if="item.unit_type === 'per_kg'">
+                                            <div>
+                                                <input type="number" x-model.number="item.kg"
+                                                       :max="item.available_kg" step="0.01" min="0.01" required
+                                                       @input="calculateSaleFromKg(index); recalculateServices()"
+                                                       placeholder="KG"
+                                                       class="block w-full rounded-lg border border-blue-300 px-4 py-2 text-sm font-mono focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none">
+                                                <input type="hidden" :name="`items[${index}][bags]`" :value="item.bags" :disabled="item.unit_type !== 'per_kg'">
+                                                <input type="hidden" :name="`items[${index}][kg_quantity]`" :value="item.kg">
+                                            </div>
+                                        </template>
                                     </td>
+
+                                    <!-- Unit Price: per_bag → price/bundle, per_kg → price/kg -->
                                     <td class="px-4 py-3">
-                                        <input type="number" :name="`items[${index}][unit_price_per_bundle]`" x-model.number="item.price" step="0.01" required
-                                               class="block w-full rounded-lg border border-gray-300 px-4 py-2 text-sm font-mono focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none">
-                                        <div class="text-xs text-gray-400 mt-0.5" x-show="item.cost">Cost: <span x-text="item.cost"></span></div>
+                                        <!-- Per Bag -->
+                                        <template x-if="item.unit_type === 'per_bag'">
+                                            <div>
+                                                <label class="block text-[10px] text-gray-400 font-bold uppercase mb-0.5">Price/Bundle</label>
+                                                <input type="number" :name="`items[${index}][unit_price_per_bundle]`" x-model.number="item.price"
+                                                       step="0.01" min="0" required
+                                                       class="block w-full rounded-lg border border-gray-300 px-4 py-2 text-sm font-mono focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none">
+                                                @if(Auth::user()->hasRole('Admin'))<div class="text-xs text-gray-400 mt-0.5" x-show="item.cost">Cost: <span x-text="item.cost"></span></div>@endif
+                                            </div>
+                                        </template>
+                                        <!-- Per KG -->
+                                        <template x-if="item.unit_type === 'per_kg'">
+                                            <div>
+                                                <label class="block text-[10px] text-blue-500 font-bold uppercase mb-0.5">Price/KG</label>
+                                                <input type="number" x-model.number="item.price_per_kg"
+                                                       @input="calculateSalePriceFromKg(index)" step="0.01" min="0" required
+                                                       class="block w-full rounded-lg border border-blue-300 px-4 py-2 text-sm font-mono focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none">
+                                                <input type="hidden" :name="`items[${index}][unit_price_per_bundle]`" :value="item.price" :disabled="item.unit_type !== 'per_kg'">
+                                                @if(Auth::user()->hasRole('Admin'))<div class="text-xs text-blue-300 mt-0.5" x-show="item.cost_per_kg">Cost/KG: <span x-text="item.cost_per_kg"></span></div>@endif
+                                            </div>
+                                        </template>
                                     </td>
+
                                     <td class="px-4 py-3 text-right bg-gray-50/50">
                                         <span class="text-sm font-bold text-gray-900 font-mono" x-text="calculateSubtotal(index)"></span>
                                     </td>
@@ -133,28 +186,40 @@
                 <div class="p-6">
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                         @foreach($services as $service)
-                        <label for="service_{{ $service->id }}"
-                               class="service-card flex flex-col p-4 rounded-xl border-2 border-gray-100 bg-gray-50/50 cursor-pointer hover:border-indigo-300 hover:bg-indigo-50/40 transition-all duration-150 group"
-                               :class="selectedServices.includes({{ $service->id }}) ? 'border-indigo-500 bg-indigo-50 shadow-sm' : ''">
+                        <div class="service-card-wrapper flex flex-col p-4 rounded-xl border-2 border-gray-100 bg-gray-50/50 hover:border-indigo-300 hover:bg-indigo-50/40 transition-all duration-150 group"
+                             :class="selectedServices.includes({{ $service->id }}) ? 'border-indigo-500 bg-indigo-50 shadow-sm' : ''">
                             
-                            <div class="flex items-center gap-4 mb-2">
+                            <div class="flex items-center gap-3 mb-2">
                                 <input id="service_{{ $service->id }}"
                                        type="checkbox"
                                        name="services[]"
                                        value="{{ $service->id }}"
                                        data-price="{{ $service->price }}"
+                                       data-cost="{{ $service->cost_price }}"
                                        data-unit="{{ $service->unit }}"
                                        data-name="{{ $service->name }}"
                                        @change="toggleService({{ $service->id }}, $event)"
                                        class="service-checkbox w-5 h-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer shrink-0">
                                 <div class="min-w-0 flex-1">
-                                    <p class="text-sm font-bold text-gray-900 group-hover:text-indigo-700 transition-colors">
+                                    <label for="service_{{ $service->id }}" class="text-sm font-bold text-gray-900 group-hover:text-indigo-700 transition-colors cursor-pointer">
                                         {{ $service->name }}
-                                    </p>
+                                    </label>
                                     <p class="text-[10px] text-gray-400 font-semibold uppercase tracking-wider">
-                                        Rs {{ number_format($service->price, 2) }} / {{ str_replace('_', ' ', $service->unit) }}
+                                        Default: Rs {{ number_format($service->price, 2) }} / {{ str_replace('_', ' ', $service->unit) }}
                                     </p>
                                 </div>
+                            </div>
+
+                            <!-- Editable Price (always visible) -->
+                            <div class="mt-1">
+                                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Price / {{ str_replace('_', ' ', $service->unit) }}</label>
+                                <input type="number"
+                                       id="service_price_{{ $service->id }}"
+                                       name="service_prices[{{ $service->id }}]"
+                                       value="{{ $service->price }}"
+                                       step="0.01" min="0"
+                                       @input="updateServicePrice({{ $service->id }}, $event.target.value)"
+                                       class="service-price-input w-full rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-mono text-gray-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-colors">
                             </div>
 
                             <!-- Individual Service Total (Visible when checked) -->
@@ -162,11 +227,11 @@
                                  x-transition:enter="transition duration-150"
                                  x-transition:enter-start="opacity-0"
                                  x-transition:enter-end="opacity-100"
-                                 class="mt-auto pt-2 border-t border-indigo-100/50 flex justify-between items-center font-mono">
+                                 class="mt-2 pt-2 border-t border-indigo-100/50 flex justify-between items-center font-mono">
                                 <span class="text-[10px] text-indigo-400 font-bold uppercase tracking-wider">Total:</span>
                                 <span class="text-sm font-black text-indigo-800" x-text="formatCurrency(calculatedValues[{{ $service->id }}] || 0)"></span>
                             </div>
-                        </label>
+                        </div>
                         @endforeach
                     </div>
 
@@ -234,17 +299,28 @@
     </div>
 
     <script>
+        function newSaleItem() {
+            return {
+                lot_id: '', unit_type: 'per_bag',
+                available_bags: 0, available_kg: 0,
+                cost: 0, cost_per_kg: 0,
+                bags: 0, price: 0,
+                kg: 0, price_per_kg: 0,
+            };
+        }
+
         function saleForm() {
             return {
-                items: [{ lot_id: '', available_bags: 0, cost: 0, bags: 0, price: 0 }],
+                items: [newSaleItem()],
                 paidAmount: 0,
                 discount: 0,
                 servicesTotal: 0,
                 selectedServices: [],
                 calculatedValues: {}, // Stores individual totals per service
+                servicePrices: {},    // Overridden price per service id
 
                 addItem() {
-                    this.items.push({ lot_id: '', available_bags: 0, cost: 0, bags: 0, price: 0 });
+                    this.items.push(newSaleItem());
                 },
 
                 removeItem(index) {
@@ -257,16 +333,38 @@
                     const select = document.getElementsByName(`items[${index}][lot_id]`)[0];
                     const option = select.options[select.selectedIndex];
                     if (option.value) {
-                        this.items[index].available_bags = option.dataset.bags;
-                        this.items[index].cost = option.dataset.cost;
+                        const remainingBags = parseFloat(option.dataset.bags) || 0;
+                        const costPerBundle  = parseFloat(option.dataset.cost)  || 0;
+                        const unitType       = option.dataset.unitType || 'per_bag';
+
+                        this.items[index].available_bags = remainingBags;
+                        this.items[index].available_kg   = +(remainingBags * 25).toFixed(4);
+                        this.items[index].cost           = costPerBundle;
+                        this.items[index].cost_per_kg    = +(costPerBundle / 5).toFixed(6);
+                        this.items[index].unit_type      = unitType;
+                        // Reset qty/price on lot change
+                        this.items[index].bags         = 0;
+                        this.items[index].price        = 0;
+                        this.items[index].kg           = 0;
+                        this.items[index].price_per_kg = 0;
                     } else {
-                        this.items[index].available_bags = 0;
-                        this.items[index].cost = 0;
+                        Object.assign(this.items[index], newSaleItem());
                     }
                 },
 
+                // per_kg sale: kg → bags (kg/25)
+                calculateSaleFromKg(index) {
+                    const kg = this.items[index].kg || 0;
+                    this.items[index].bags = +(kg / 25).toFixed(6);
+                },
+
+                // per_kg sale: price_per_kg → unit_price_per_bundle (price_per_kg * 5)
+                calculateSalePriceFromKg(index) {
+                    this.items[index].price = +(this.items[index].price_per_kg * 5).toFixed(6);
+                },
+
+                // totalBags sums all item bags (fractional for per_kg items) — used by services
                 totalBags() {
-                    // Sum of bags from all items that have a lot selected
                     return this.items.reduce((sum, item) => sum + (item.lot_id ? parseFloat(item.bags || 0) : 0), 0);
                 },
 
@@ -279,20 +377,24 @@
                     this.recalculateServices();
                 },
 
+                updateServicePrice(serviceId, value) {
+                    this.servicePrices[serviceId] = parseFloat(value) || 0;
+                    this.recalculateServices();
+                },
+
                 recalculateServices() {
                     let total = 0;
                     const bags = this.totalBags();
-                    
-                    // Reset all values first
+
                     this.calculatedValues = {};
 
-                    // Select all service checkboxes currently in the document
                     document.querySelectorAll('.service-checkbox').forEach(checkbox => {
                         const sId = parseInt(checkbox.value);
                         if (this.selectedServices.includes(sId)) {
                             const unit = checkbox.dataset.unit;
-                            const unitPrice = parseFloat(checkbox.dataset.price);
-                            
+                            const priceInput = document.getElementById(`service_price_${sId}`);
+                            const unitPrice = priceInput ? (parseFloat(priceInput.value) || 0) : parseFloat(checkbox.dataset.price);
+
                             let multiplier = 1;
                             if (unit === 'per_kg') multiplier = 25;
                             else if (unit === 'per_bundle') multiplier = 5;
@@ -307,13 +409,20 @@
                 },
 
                 calculateSubtotal(index) {
-                    let bundles = this.items[index].bags * 5;
-                    let subtotal = bundles * this.items[index].price;
-                    return subtotal.toFixed(2);
+                    const item = this.items[index];
+                    if (item.unit_type === 'per_kg') {
+                        return ((item.kg || 0) * (item.price_per_kg || 0)).toFixed(2);
+                    }
+                    return ((item.bags || 0) * 5 * (item.price || 0)).toFixed(2);
                 },
 
                 itemsTotal() {
-                    return this.items.reduce((sum, item) => sum + (item.bags * 5 * item.price), 0);
+                    return this.items.reduce((sum, item) => {
+                        if (item.unit_type === 'per_kg') {
+                            return sum + ((item.kg || 0) * (item.price_per_kg || 0));
+                        }
+                        return sum + ((item.bags || 0) * 5 * (item.price || 0));
+                    }, 0);
                 },
 
                 grandTotal() {

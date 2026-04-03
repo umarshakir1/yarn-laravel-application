@@ -11,6 +11,7 @@ class Product extends Model
         'quality',
         'description',
         'is_active',
+        'unit_type',
     ];
 
     /**

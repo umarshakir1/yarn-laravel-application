@@ -35,6 +35,10 @@ class SaleService
                 $totalAmount += $subtotal;
                 $totalProfit += $profit;
 
+                $kgQty = isset($itemData['kg_quantity']) && $itemData['kg_quantity'] > 0
+                    ? (float) $itemData['kg_quantity']
+                    : null;
+
                 $itemsToCreate[] = [
                     'lot_id'                => $lot->id,
                     'product_id'            => $lot->product_id,
@@ -43,10 +47,14 @@ class SaleService
                     'unit_price_per_bundle' => $itemData['unit_price_per_bundle'],
                     'subtotal'              => $subtotal,
                     'profit'                => $profit,
+                    'kg_quantity'           => $kgQty,
                 ];
 
                 // Deduct from Lot
                 $lot->decrement('remaining_bags', $itemData['bags']);
+                if ($kgQty !== null && $lot->kg_quantity !== null) {
+                    $lot->decrement('kg_quantity', $kgQty);
+                }
                 if ($lot->remaining_bags <= 0) {
                     $lot->update(['is_exhausted' => true]);
                 }
@@ -69,8 +77,13 @@ class SaleService
 
                     $rawQuantity = $totalBags * $multiplier;
 
-                    $calculatedPrice = $service->price * $rawQuantity;
-                    $calculatedCost  = $service->cost_price * $rawQuantity;
+                    // Use user-overridden price if provided, otherwise fall back to default
+                    $overriddenPrice = isset($data['service_prices'][$service->id])
+                        ? (float) $data['service_prices'][$service->id]
+                        : $service->price;
+
+                    $calculatedPrice  = $overriddenPrice * $rawQuantity;
+                    $calculatedCost   = $service->cost_price * $rawQuantity;
                     $calculatedProfit = $calculatedPrice - $calculatedCost;
                     
                     $servicesTotal += $calculatedPrice;
@@ -138,6 +151,9 @@ class SaleService
             foreach ($sale->items as $item) {
                 $lot = $item->lot;
                 $lot->increment('remaining_bags', $item->bags);
+                if ($item->kg_quantity !== null && $lot->kg_quantity !== null) {
+                    $lot->increment('kg_quantity', $item->kg_quantity);
+                }
                 if ($lot->remaining_bags > 0) {
                     $lot->update(['is_exhausted' => false]);
                 }

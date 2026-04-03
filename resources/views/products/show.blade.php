@@ -42,6 +42,14 @@
                         <dd class="text-base font-medium text-gray-800 mt-0.5">{{ $product->quality }}</dd>
                     </div>
                     <div>
+                        <dt class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Unit Type</dt>
+                        <dd class="mt-0.5">
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold {{ $product->unit_type === 'per_kg' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700' }}">
+                                {{ $product->unit_type === 'per_kg' ? 'Per KG' : 'Per Bag' }}
+                            </span>
+                        </dd>
+                    </div>
+                    <div>
                         <dt class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Status</dt>
                         <dd class="mt-0.5">
                             <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold {{ $product->is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' }}">

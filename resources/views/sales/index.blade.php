@@ -24,7 +24,9 @@
                             <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider">Customer</th>
                             <th class="px-6 py-4 text-right text-xs font-bold uppercase tracking-wider">Total</th>
                             <th class="px-6 py-4 text-right text-xs font-bold uppercase tracking-wider">Paid</th>
+                            @if(Auth::user()->hasRole('Admin'))
                             <th class="px-6 py-4 text-right text-xs font-bold uppercase tracking-wider">Profit</th>
+                            @endif
                             <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider">Actions</th>
                         </tr>
                     </thead>
@@ -36,9 +38,11 @@
                                 <td class="px-6 py-4 text-sm text-gray-700">{{ $sale->client->name }}</td>
                                 <td class="px-6 py-4 text-right text-sm font-bold text-gray-900 font-mono">{{ number_format($sale->total_amount, 2) }}</td>
                                 <td class="px-6 py-4 text-right text-sm font-bold text-green-600 font-mono">{{ number_format($sale->paid_amount, 2) }}</td>
+                                @if(Auth::user()->hasRole('Admin'))
                                 <td class="px-6 py-4 text-right">
                                     <span class="text-sm font-bold font-mono text-blue-600">{{ number_format($sale->total_profit, 2) }}</span>
                                 </td>
+                                @endif
                                 <td class="px-6 py-4">
                                     <div class="flex items-center gap-2">
                                         <a href="{{ route('sales.show', $sale) }}"
@@ -59,7 +63,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="px-6 py-16 text-center">
+                                <td colspan="{{ Auth::user()->hasRole('Admin') ? 7 : 6 }}" class="px-6 py-16 text-center">
                                     <p class="text-gray-400 font-medium">No sales found.</p>
                                 </td>
                             </tr>

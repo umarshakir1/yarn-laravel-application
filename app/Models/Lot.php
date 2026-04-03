@@ -12,6 +12,7 @@ class Lot extends Model
         'product_id',
         'initial_bags',
         'remaining_bags',
+        'kg_quantity',
         'cost_price_per_bundle',
         'is_exhausted',
     ];

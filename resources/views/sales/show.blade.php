@@ -15,7 +15,7 @@
     <div class="py-8 px-6 lg:px-8 w-full space-y-6">
 
         <!-- Summary Cards -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="grid grid-cols-2 {{ Auth::user()->hasRole('Admin') ? 'md:grid-cols-4' : 'md:grid-cols-3' }} gap-4">
             <div class="bg-white rounded-xl shadow-sm border-l-4 border-l-blue-500 border border-gray-100 p-5">
                 <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Customer</p>
                 <p class="text-base font-bold text-gray-900">{{ $sale->client->name }}</p>
@@ -28,10 +28,12 @@
                 <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Amount Paid</p>
                 <p class="text-xl font-black text-green-700 font-mono">{{ number_format($sale->paid_amount, 2) }}</p>
             </div>
+            @if(Auth::user()->hasRole('Admin'))
             <div class="bg-white rounded-xl shadow-sm border-l-4 border-l-blue-400 border border-gray-100 p-5">
                 <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Total Profit</p>
                 <p class="text-xl font-black text-blue-600 font-mono">{{ number_format($sale->total_profit, 2) }}</p>
             </div>
+            @endif
         </div>
 
         <!-- Items Table -->
@@ -46,28 +48,52 @@
                         <tr class="bg-gray-50 border-b border-gray-100">
                             <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Product</th>
                             <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Lot</th>
-                            <th class="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Bags</th>
-                            <th class="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Bundles</th>
-                            <th class="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Price/Bundle</th>
+                            <th class="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Qty</th>
+                            <th class="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Bundles / KG</th>
+                            <th class="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Unit Price</th>
                             <th class="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Subtotal</th>
+                            @if(Auth::user()->hasRole('Admin'))
                             <th class="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider text-blue-600">Profit</th>
+                            @endif
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">
                         @foreach($sale->items as $item)
+                            @php $isKg = $item->product->unit_type === 'per_kg'; @endphp
                             <tr class="hover:bg-indigo-50/20 transition-colors even:bg-gray-50/40">
                                 <td class="px-6 py-4 text-sm font-medium text-gray-900">
                                     {{ $item->product->name }}
                                     <span class="text-gray-400 text-xs">({{ $item->product->quality }})</span>
+                                    <span class="ml-1 text-[10px] font-bold uppercase {{ $isKg ? 'text-blue-500' : 'text-gray-400' }}">{{ $isKg ? 'per KG' : 'per Bag' }}</span>
                                 </td>
                                 <td class="px-6 py-4">
                                     <span class="inline-flex items-center px-2.5 py-1 bg-yellow-100 text-yellow-800 text-xs font-bold rounded-full">{{ $item->lot->lot_number }}</span>
                                 </td>
-                                <td class="px-6 py-4 text-right text-sm text-gray-600 font-mono">{{ $item->bags }}</td>
-                                <td class="px-6 py-4 text-right text-sm text-gray-600 font-mono">{{ $item->bundles }}</td>
-                                <td class="px-6 py-4 text-right text-sm text-gray-600 font-mono">{{ number_format($item->unit_price_per_bundle, 2) }}</td>
+                                <td class="px-6 py-4 text-right text-sm text-gray-600 font-mono">
+                                    @if($isKg)
+                                        {{ number_format($item->bags * 25, 2) }} KG
+                                    @else
+                                        {{ $item->bags }} bags
+                                    @endif
+                                </td>
+                                <td class="px-6 py-4 text-right text-sm text-gray-600 font-mono">
+                                    @if($isKg)
+                                        <span class="text-blue-500">{{ number_format($item->bags * 25, 2) }} KG</span>
+                                    @else
+                                        {{ $item->bundles }}
+                                    @endif
+                                </td>
+                                <td class="px-6 py-4 text-right text-sm text-gray-600 font-mono">
+                                    @if($isKg)
+                                        {{ number_format($item->unit_price_per_bundle / 5, 2) }}/KG
+                                    @else
+                                        {{ number_format($item->unit_price_per_bundle, 2) }}/bundle
+                                    @endif
+                                </td>
                                 <td class="px-6 py-4 text-right text-sm font-bold text-gray-900 font-mono">{{ number_format($item->subtotal, 2) }}</td>
+                                @if(Auth::user()->hasRole('Admin'))
                                 <td class="px-6 py-4 text-right text-sm font-bold text-blue-600 font-mono">{{ number_format($item->profit, 2) }}</td>
+                                @endif
                             </tr>
                         @endforeach
                     </tbody>
@@ -82,12 +108,14 @@
                         <tr class="bg-gray-800 text-white">
                             <td colspan="5" class="px-6 py-4 text-right text-sm font-bold uppercase tracking-wider">Net Total</td>
                             <td class="px-6 py-4 text-right text-base font-black font-mono text-indigo-300">{{ number_format($sale->total_amount, 2) }}</td>
+                            @if(Auth::user()->hasRole('Admin'))
                             <td class="px-6 py-4 text-right text-base font-black font-mono text-blue-300">{{ number_format($sale->total_profit, 2) }}</td>
+                            @endif
                         </tr>
                         <tr class="bg-green-800 text-white">
                             <td colspan="5" class="px-6 py-3 text-right text-xs font-bold uppercase tracking-wider">Amount Paid</td>
                             <td class="px-6 py-3 text-right text-sm font-bold font-mono text-green-200">{{ number_format($sale->paid_amount, 2) }}</td>
-                            <td></td>
+                            @if(Auth::user()->hasRole('Admin'))<td></td>@endif
                         </tr>
                     </tfoot>
                 </table>
@@ -113,12 +141,26 @@
                         <tr class="bg-indigo-50 border-b border-indigo-100">
                             <th class="px-6 py-3 text-left text-xs font-bold text-indigo-500 uppercase tracking-wider">Service Details</th>
                             <th class="px-6 py-3 text-right text-xs font-bold text-indigo-500 uppercase tracking-wider">Quantity (Bags)</th>
-                            <th class="px-6 py-3 text-right text-xs font-bold text-indigo-500 uppercase tracking-wider">Base Price / Unit</th>
+                            <th class="px-6 py-3 text-right text-xs font-bold text-indigo-500 uppercase tracking-wider">Charged Price / Unit</th>
                             <th class="px-6 py-3 text-right text-xs font-bold text-indigo-500 uppercase tracking-wider">Total Charged</th>
+                            @if(Auth::user()->hasRole('Admin'))
+                            <th class="px-6 py-3 text-right text-xs font-bold text-blue-500 uppercase tracking-wider">Profit</th>
+                            @endif
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-indigo-50">
                         @foreach($sale->services as $service)
+                            @php
+                                $rawQty = $service->pivot->quantity_used;
+                                $multiplier = match($service->pivot->unit) {
+                                    'per_kg'     => 25,
+                                    'per_bundle' => 5,
+                                    default      => 1,
+                                };
+                                $effectiveUnitPrice = ($rawQty * $multiplier) > 0
+                                    ? $service->pivot->price / ($rawQty * $multiplier)
+                                    : 0;
+                            @endphp
                             <tr class="hover:bg-indigo-50/50 transition-colors">
                                 <td class="px-6 py-4">
                                     <div class="flex flex-col">
@@ -135,12 +177,18 @@
                                     {{ number_format($service->pivot->quantity_used, 2) }}
                                 </td>
                                 <td class="px-6 py-4 text-right">
-                                    <span class="text-sm font-bold text-gray-900 font-mono">{{ number_format($service->price, 2) }}</span>
+                                    <span class="text-sm font-bold text-gray-900 font-mono">{{ number_format($effectiveUnitPrice, 2) }}</span>
                                     <span class="text-[10px] text-gray-400 uppercase tracking-widest block ml-auto">per {{ str_replace('_', ' ', $service->pivot->unit) }}</span>
                                 </td>
                                 <td class="px-6 py-4 text-right text-sm font-black text-indigo-700 font-mono">
                                     {{ number_format($service->pivot->price, 2) }}
                                 </td>
+                                @if(Auth::user()->hasRole('Admin'))
+                                <td class="px-6 py-4 text-right text-sm font-bold font-mono
+                                    {{ $service->pivot->service_profit >= 0 ? 'text-blue-600' : 'text-red-600' }}">
+                                    {{ number_format($service->pivot->service_profit, 2) }}
+                                </td>
+                                @endif
                             </tr>
                         @endforeach
                     </tbody>
@@ -150,6 +198,11 @@
                             <td class="px-6 py-3 text-right text-sm font-black font-mono text-indigo-200">
                                 {{ number_format($servicesTotal, 2) }}
                             </td>
+                            @if(Auth::user()->hasRole('Admin'))
+                            <td class="px-6 py-3 text-right text-sm font-black font-mono text-blue-300">
+                                {{ number_format($sale->serviceProfitsTotal(), 2) }}
+                            </td>
+                            @endif
                         </tr>
                     </tfoot>
                 </table>

@@ -28,6 +28,7 @@ class PurchaseRequest extends FormRequest
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.bags' => 'required|numeric|min:0.01',
             'items.*.unit_price_per_bundle' => 'required|numeric|min:0',
+            'items.*.kg_quantity' => 'nullable|numeric|min:0',
             'paid_amount' => 'required|numeric|min:0',
             'notes' => 'nullable|string',
         ];

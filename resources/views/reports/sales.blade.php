@@ -5,6 +5,12 @@
                 <h1 class="text-2xl font-bold text-gray-900">Sales Report</h1>
                 <p class="text-sm text-gray-500 mt-0.5">Detailed sales performance overview</p>
             </div>
+            <a href="{{ route('reports.sales.pdf', ['start_date' => $startDate, 'end_date' => $endDate]) }}"
+               target="_blank"
+               class="inline-flex items-center gap-2 px-4 py-2.5 bg-red-600 text-white text-sm font-semibold rounded-lg hover:bg-red-700 transition-colors shadow-sm">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+                Export PDF
+            </a>
         </div>
     </x-slot>
 
@@ -14,18 +20,21 @@
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
             <form method="GET" class="flex flex-wrap gap-4 items-end">
                 <div>
-                    <label for="start_date" class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Start Date</label>
+                    <label for="start_date" class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">From Date</label>
                     <input id="start_date" name="start_date" type="date" value="{{ $startDate }}"
                            class="rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-colors">
                 </div>
                 <div>
-                    <label for="end_date" class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">End Date</label>
+                    <label for="end_date" class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">To Date</label>
                     <input id="end_date" name="end_date" type="date" value="{{ $endDate }}"
                            class="rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-colors">
                 </div>
                 <button type="submit" class="px-5 py-2.5 bg-gray-900 text-white text-sm font-semibold rounded-lg hover:bg-gray-700 transition-colors shadow-sm">
                     Filter
                 </button>
+                <a href="{{ route('reports.sales') }}" class="px-5 py-2.5 bg-gray-100 text-gray-700 text-sm font-semibold rounded-lg hover:bg-gray-200 transition-colors">
+                    Reset
+                </a>
             </form>
         </div>
 
@@ -89,6 +98,15 @@
                             </tr>
                         @endforelse
                     </tbody>
+                    @if($sales->count() > 0)
+                    <tfoot>
+                        <tr class="bg-gray-900 text-white">
+                            <td colspan="3" class="px-6 py-4 text-right text-sm font-bold uppercase tracking-wider">Totals</td>
+                            <td class="px-6 py-4 text-right text-sm font-black font-mono text-indigo-300">{{ number_format($summary['total_sales'], 2) }}</td>
+                            <td class="px-6 py-4 text-right text-sm font-black font-mono text-green-300">{{ number_format($summary['total_profit'], 2) }}</td>
+                        </tr>
+                    </tfoot>
+                    @endif
                 </table>
             </div>
         </div>

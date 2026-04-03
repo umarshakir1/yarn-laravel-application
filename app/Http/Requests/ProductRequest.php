@@ -27,6 +27,7 @@ class ProductRequest extends FormRequest
             'quality' => 'required|string|max:100', // e.g., 50/2
             'description' => 'nullable|string',
             'is_active' => 'boolean',
+            'unit_type' => 'required|in:per_bag,per_kg',
         ];
     }
 }

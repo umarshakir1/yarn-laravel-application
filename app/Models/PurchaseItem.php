@@ -13,6 +13,7 @@ class PurchaseItem extends Model
         'bundles',
         'unit_price_per_bundle',
         'subtotal',
+        'kg_quantity',
     ];
 
     public function purchase()

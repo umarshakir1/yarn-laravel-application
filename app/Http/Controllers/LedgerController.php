@@ -36,7 +36,17 @@ class LedgerController extends Controller
         $legacyQuery = Ledger::where('client_id', $client->id);
 
         // Pull payment entries from the new ledger_entries table
-        $newQuery = LedgerEntry::forAccount('customer', $client->id);
+        // Include both 'customer' entries AND 'supplier' entries if client type is 'both'
+        $newQuery = LedgerEntry::where(function($q) use ($client) {
+            $q->where(function($sq) {
+                $sq->where('account_type', 'customer');
+            });
+            if ($client->type === 'both') {
+                $q->orWhere(function($sq) {
+                    $sq->where('account_type', 'supplier');
+                });
+            }
+        })->where('account_id', $client->id);
 
         if ($from) {
             $legacyQuery->where('date', '>=', $from);
@@ -64,7 +74,7 @@ class LedgerController extends Controller
             'source'      => 'ledger_entry',
         ]);
 
-        $entries = $legacyEntries->merge($newEntries)
+        $entries = $legacyEntries->toBase()->merge($newEntries)
                                  ->sortBy('date')
                                  ->values();
 
@@ -125,7 +135,17 @@ class LedgerController extends Controller
         $legacyQuery = Ledger::where('client_id', $client->id);
 
         // Payment entries from the double-entry table
-        $newQuery = LedgerEntry::forAccount('supplier', $client->id);
+        // Include both 'supplier' entries AND 'customer' entries if client type is 'both'
+        $newQuery = LedgerEntry::where(function($q) use ($client) {
+            $q->where(function($sq) {
+                $sq->where('account_type', 'supplier');
+            });
+            if ($client->type === 'both') {
+                $q->orWhere(function($sq) {
+                    $sq->where('account_type', 'customer');
+                });
+            }
+        })->where('account_id', $client->id);
 
         if ($from) {
             $legacyQuery->where('date', '>=', $from);
@@ -152,12 +172,12 @@ class LedgerController extends Controller
             'source'      => 'ledger_entry',
         ]);
 
-        $entries = $legacyEntries->merge($newEntries)
+        $entries = $legacyEntries->toBase()->merge($newEntries)
                                  ->sortBy('date')
                                  ->values();
 
-        $runningBalance = $client->opening_balance;
-        $openingBalance = $client->opening_balance;
+        $openingBalance  = $client->isCustomer() ? -$client->opening_balance : $client->opening_balance;
+        $runningBalance  = $openingBalance;
         $rows = [];
 
         foreach ($entries as $entry) {
@@ -192,7 +212,16 @@ class LedgerController extends Controller
     private function buildCustomerLedgerData(Client $client, ?string $from, ?string $to): array
     {
         $legacyQuery = Ledger::where('client_id', $client->id);
-        $newQuery    = LedgerEntry::forAccount('customer', $client->id);
+        $newQuery    = LedgerEntry::where(function($q) use ($client) {
+            $q->where(function($sq) {
+                $sq->where('account_type', 'customer');
+            });
+            if ($client->type === 'both') {
+                $q->orWhere(function($sq) {
+                    $sq->where('account_type', 'supplier');
+                });
+            }
+        })->where('account_id', $client->id);
 
         if ($from) { $legacyQuery->where('date', '>=', $from); $newQuery->where('date', '>=', $from); }
         if ($to)   { $legacyQuery->where('date', '<=', $to);   $newQuery->where('date', '<=', $to);   }
@@ -208,7 +237,7 @@ class LedgerController extends Controller
             'credit' => $r->entry_type === 'credit' ? $r->amount : 0,
         ]);
 
-        $entries        = $legacyEntries->merge($newEntries)->sortBy('date')->values();
+        $entries        = $legacyEntries->toBase()->merge($newEntries)->sortBy('date')->values();
         $runningBalance = $client->opening_balance;
         $openingBalance = $client->opening_balance;
         $rows = [];
@@ -225,7 +254,16 @@ class LedgerController extends Controller
     private function buildSupplierLedgerData(Client $client, ?string $from, ?string $to): array
     {
         $legacyQuery = Ledger::where('client_id', $client->id);
-        $newQuery    = LedgerEntry::forAccount('supplier', $client->id);
+        $newQuery    = LedgerEntry::where(function($q) use ($client) {
+            $q->where(function($sq) {
+                $sq->where('account_type', 'supplier');
+            });
+            if ($client->type === 'both') {
+                $q->orWhere(function($sq) {
+                    $sq->where('account_type', 'customer');
+                });
+            }
+        })->where('account_id', $client->id);
 
         if ($from) { $legacyQuery->where('date', '>=', $from); $newQuery->where('date', '>=', $from); }
         if ($to)   { $legacyQuery->where('date', '<=', $to);   $newQuery->where('date', '<=', $to);   }
@@ -241,9 +279,9 @@ class LedgerController extends Controller
             'credit' => $r->entry_type === 'credit' ? $r->amount : 0,
         ]);
 
-        $entries        = $legacyEntries->merge($newEntries)->sortBy('date')->values();
-        $runningBalance = $client->opening_balance;
-        $openingBalance = $client->opening_balance;
+        $entries        = $legacyEntries->toBase()->merge($newEntries)->sortBy('date')->values();
+        $openingBalance = $client->isCustomer() ? -$client->opening_balance : $client->opening_balance;
+        $runningBalance = $openingBalance;
         $rows = [];
 
         foreach ($entries as $entry) {

@@ -27,12 +27,17 @@ class PurchaseService
                 $subtotal = $bundles * $item['unit_price_per_bundle'];
                 $totalAmount += $subtotal;
 
+                $kgQty = isset($item['kg_quantity']) && $item['kg_quantity'] > 0
+                    ? (float) $item['kg_quantity']
+                    : null;
+
                 $itemsToCreate[] = [
-                    'product_id' => $item['product_id'],
-                    'bags' => $item['bags'],
-                    'bundles' => $bundles,
+                    'product_id'            => $item['product_id'],
+                    'bags'                  => $item['bags'],
+                    'bundles'               => $bundles,
                     'unit_price_per_bundle' => $item['unit_price_per_bundle'],
-                    'subtotal' => $subtotal,
+                    'subtotal'              => $subtotal,
+                    'kg_quantity'           => $kgQty,
                 ];
             }
 
@@ -52,11 +57,12 @@ class PurchaseService
 
                 // Create Lot for this item
                 Lot::create([
-                    'lot_number' => 'LOT-' . now()->format('Hi-Ymd'),
-                    'purchase_item_id' => $purchaseItem->id,
-                    'product_id' => $itemData['product_id'],
-                    'initial_bags' => $itemData['bags'],
-                    'remaining_bags' => $itemData['bags'],
+                    'lot_number'            => 'LOT-' . now()->format('Hi-Ymd'),
+                    'purchase_item_id'      => $purchaseItem->id,
+                    'product_id'            => $itemData['product_id'],
+                    'initial_bags'          => $itemData['bags'],
+                    'remaining_bags'        => $itemData['bags'],
+                    'kg_quantity'           => $itemData['kg_quantity'],
                     'cost_price_per_bundle' => $itemData['unit_price_per_bundle'],
                 ]);
             }
