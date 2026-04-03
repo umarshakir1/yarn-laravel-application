@@ -17,16 +17,19 @@ class RoleSeeder extends Seeder
     public function run(): void
     {
         // Define roles
-        $adminRole = Role::create(['name' => 'Admin']);
-        $managerRole = Role::create(['name' => 'Manager']);
-        $accountantRole = Role::create(['name' => 'Accountant']);
+        $adminRole      = Role::firstOrCreate(['name' => 'Admin']);
+        $staffRole      = Role::firstOrCreate(['name' => 'Staff']);
+        $managerRole    = Role::firstOrCreate(['name' => 'Manager']);
+        $accountantRole = Role::firstOrCreate(['name' => 'Accountant']);
 
         // Create a default Admin user
-        $admin = User::create([
-            'name' => 'Admin User',
-            'email' => 'admin@erp.com',
-            'password' => Hash::make('password'),
-        ]);
+        $admin = User::firstOrCreate(
+            ['email' => 'admin@erp.com'],
+            [
+                'name'     => 'Admin User',
+                'password' => Hash::make('password'),
+            ]
+        );
 
         $admin->assignRole($adminRole);
     }
